@@ -1,30 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '../context/SessionContext';
 import useTimer from '../hooks/useTimer';
 import SlideViewer from '../components/SlideViewer';
 import Overlay from '../components/Overlay';
+import ReviewOverlay from '../components/ReviewOverlay';
 import useBoredomDetection from '../hooks/useBoredomDetection';
 import { Clock, AlertCircle, CheckCircle, Target, Zap, ArrowRight } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 export default function SessionPage() {
   const navigate = useNavigate();
   const { state, dispatch } = useSession();
-  const { slides, currentSlideIndex, isActive, isPanicMode, extensionsUsed, goal } = state;
+  const { slides, currentSlideIndex, isActive, isPanicMode, extensionsUsed, totalTime } = state;
 
   const currentSlide = slides[currentSlideIndex];
   const [showOverlay, setShowOverlay] = useState(false);
   const [difficultySelected, setDifficultySelected] = useState(null);
   const [showBoredomAlert, setShowBoredomAlert] = useState(false);
 
+  // Review Mode State
+  const [isReviewMode, setIsReviewMode] = useState(false);
+  const [slidesCompletedInBlock, setSlidesCompletedInBlock] = useState(0);
+
   const { timeLeft, formattedTime, isRunning, start, pause, reset, progress } = useTimer({
     initialTime: 0,
     onExpire: () => setShowOverlay(true)
   });
 
+  // Session Timer
+  const { formattedTime: formattedSessionTime, start: startSessionTimer, pause: pauseSessionTimer } = useTimer({
+    initialTime: totalTime,
+    onExpire: () => { /* Optional: handle session end */ }
+  });
+
   useBoredomDetection({
     timeout: 45000,
-    isActive: isRunning && !showOverlay,
+    isActive: isRunning && !showOverlay && !isReviewMode,
     onBoredomDetected: () => setShowBoredomAlert(true)
   });
 
@@ -33,6 +45,15 @@ export default function SessionPage() {
       navigate('/');
     }
   }, [state.isConfigured, slides.length, navigate]);
+
+  useEffect(() => {
+    if (isActive && !isReviewMode) {
+      startSessionTimer();
+    } else {
+      pauseSessionTimer();
+    }
+    return () => pauseSessionTimer();
+  }, [isActive, isReviewMode, startSessionTimer, pauseSessionTimer]);
 
   useEffect(() => {
     setShowOverlay(false);
@@ -44,7 +65,6 @@ export default function SessionPage() {
   const handleDifficultySelect = (seconds) => {
     setDifficultySelected(seconds);
     dispatch({ type: 'UPDATE_SLIDE_DIFFICULTY', payload: { slideId: currentSlide.id, difficulty: seconds } });
-    // Since 'seconds' is now the time value directly
     reset(seconds);
     start();
   };
@@ -52,12 +72,36 @@ export default function SessionPage() {
   const handleNextSlide = () => {
     pause();
     setShowOverlay(false);
+
+    const newCount = slidesCompletedInBlock + 1;
+    setSlidesCompletedInBlock(newCount);
+
+    if (newCount === 5) {
+      setIsReviewMode(true);
+    } else {
+      moveToNext();
+    }
+  };
+
+  const moveToNext = () => {
     if (currentSlideIndex < slides.length - 1) {
       dispatch({ type: 'NEXT_SLIDE' });
     } else {
       navigate('/summary');
     }
   };
+
+  const handleFinishReview = () => {
+    setIsReviewMode(false);
+    setSlidesCompletedInBlock(0);
+    moveToNext();
+  };
+
+  const lastFiveSlides = useMemo(() => {
+    if (!isReviewMode) return [];
+    // Slides we just finished are from currentSlideIndex - 4 to currentSlideIndex
+    return slides.slice(Math.max(0, currentSlideIndex - 4), currentSlideIndex + 1);
+  }, [isReviewMode, currentSlideIndex, slides]);
 
   const handleExtend = () => {
     dispatch({ type: 'USE_EXTENSION' });
@@ -84,12 +128,9 @@ export default function SessionPage() {
 
   return (
     <div className="examix-container horizontal !p-0">
-      {/* Session Content Wrapper */}
       <div className="session-content">
-
         {/* Controls Sidebar (Left) */}
         <div className="controls-sidebar">
-          {/* Header */}
           <div className="examix-logo">
             <div className="logo-circle"></div>
             <span>EXAMIX</span>
@@ -97,7 +138,6 @@ export default function SessionPage() {
 
           <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', width: '100%' }} />
 
-          {/* Stats Grid */}
           <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="stat-box text-center">
               <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold', letterSpacing: '0.1em', marginBottom: '4px' }}>SLIDE</p>
@@ -109,20 +149,17 @@ export default function SessionPage() {
             </div>
           </div>
 
-          {/* Goal Area */}
-          <div className="sidebar-section">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
-              <Target size={14} />
-              <span style={{ fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.1em' }}>GOAL</span>
+          <div className="timer-card-session" style={{ marginBottom: '1rem', background: 'rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>
+              <Clock size={16} className="text-purple-300"/>
+              <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>TOTAL TIME</span>
             </div>
-            <p style={{ fontWeight: 500, fontSize: '0.9rem', lineHeight: 1.4 }}>{goal}</p>
+            <div style={{ fontSize: '2.5rem', fontVariantNumeric: 'tabular-nums', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1 }}>
+              {formattedSessionTime}
+            </div>
           </div>
 
-          {/* Timer Card */}
           <div className="timer-card">
-            <div className="timer-progress-bg">
-              <div className="timer-progress-fill" style={{ width: `${progress}%` }} />
-            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.5)', marginBottom: '1rem' }}>
               <Clock size={16} />
               <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>TIME LEFT</span>
@@ -132,30 +169,30 @@ export default function SessionPage() {
             </div>
           </div>
 
-          {/* Difficulty Selection */}
-          {/* Difficulty Selection (Time Per Slide) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>TIME PER SLIDE</p>
             {!difficultySelected ? (
-              <div className="grid grid-cols-2 gap-2">
-                {[30, 45, 60, 90, 120].map((seconds) => (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                {[15, 30, 45, 60, 90, 120].map((seconds) => (
                   <button
                     key={seconds}
                     onClick={() => handleDifficultySelect(seconds)}
                     className="difficulty-btn"
                     style={{
+                      aspectRatio: '1/1',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '0.5rem',
-                      padding: '0.75rem',
+                      padding: '0.5rem',
                       background: 'rgba(255,255,255,0.05)',
                       border: '1px solid rgba(255,255,255,0.1)',
                       borderRadius: '0.75rem',
                       color: 'white',
-                      fontWeight: '600',
+                      fontWeight: '700',
+                      fontSize: '0.9rem',
                       cursor: 'pointer',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
                     }}
                   >
                     <span>{seconds}s</span>
@@ -173,9 +210,6 @@ export default function SessionPage() {
                   onClick={() => {
                     setDifficultySelected(null);
                     dispatch({ type: 'UPDATE_SLIDE_DIFFICULTY', payload: { slideId: currentSlide.id, difficulty: null } });
-                    // Note: current implementation might need reset logic if we want to cancel selection, 
-                    // but usually once selected we stick with it or just show it. 
-                    // For now, I'll just allow re-selecting by setting state.
                   }}
                   className="ml-auto text-xs opacity-50 hover:opacity-100"
                 >
@@ -185,7 +219,6 @@ export default function SessionPage() {
             )}
           </div>
 
-          {/* Action Buttons */}
           <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <button
               onClick={handleNextSlide}
@@ -203,7 +236,6 @@ export default function SessionPage() {
           </div>
         </div>
 
-        {/* PDF Area (Right) */}
         <div className="pdf-area">
           <div className="pdf-glass-container">
             <SlideViewer
@@ -212,8 +244,16 @@ export default function SessionPage() {
             />
           </div>
         </div>
-
       </div>
+
+      <AnimatePresence>
+        {isReviewMode && (
+          <ReviewOverlay
+            slides={lastFiveSlides}
+            onFinish={handleFinishReview}
+          />
+        )}
+      </AnimatePresence>
 
       {showOverlay && (
         <Overlay
