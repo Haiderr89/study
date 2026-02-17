@@ -948,6 +948,69 @@ input::-webkit-inner-spin-button {
   box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
 }
 
+/* Custom Overlay Button Styling (Non-Tailwind) */
+.overlay-button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  padding-top: 1.5rem;
+}
+
+.overlay-btn {
+  width: 100%;
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.overlay-btn:hover {
+  transform: translateY(-2px);
+}
+
+.overlay-btn:active {
+  transform: translateY(0);
+}
+
+.overlay-btn-primary {
+  background: #6366f1;
+  color: white;
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+}
+
+.overlay-btn-primary:hover {
+  background: #4f46e5;
+  box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+}
+
+.overlay-btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.overlay-btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.overlay-btn-outline {
+  background: transparent;
+  border: 2px solid #e0e7ff;
+  color: #6366f1;
+}
+
+.overlay-btn-outline:hover {
+  background: #f5f7ff;
+  border-color: #6366f1;
+}
+
 input[type=number] {
   -moz-appearance: textfield;
   appearance: textfield;

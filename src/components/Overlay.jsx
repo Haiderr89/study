@@ -21,14 +21,14 @@ export default function Overlay({ onNext, onExtend, onMarkAndMove, extensionsUse
             Keeping a steady pace prevents burnout. You're doing great!
           </p>
 
-          <div className="flex flex-col gap-3 w-full">
+          <div className="overlay-button-group">
             <button
               onClick={() => {
-                MySwal.clickConfirm(); // programmatic click to close validly if needed, or just close
+                MySwal.clickConfirm();
                 MySwal.close();
                 onNext();
               }}
-              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xl flex items-center justify-center gap-3 transition-colors"
+              className="overlay-btn overlay-btn-primary"
             >
               Next Slide <ArrowRight size={24} />
             </button>
@@ -38,7 +38,7 @@ export default function Overlay({ onNext, onExtend, onMarkAndMove, extensionsUse
                 MySwal.close();
                 onMarkAndMove();
               }}
-              className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
+              className="overlay-btn overlay-btn-secondary"
             >
               Mark for Review & Move On
             </button>
@@ -49,7 +49,7 @@ export default function Overlay({ onNext, onExtend, onMarkAndMove, extensionsUse
                   MySwal.close();
                   onExtend();
                 }}
-                className="w-full py-3 border-2 border-indigo-100 text-indigo-600 hover:bg-indigo-50 rounded-xl font-medium transition-colors"
+                className="overlay-btn overlay-btn-outline"
               >
                 Extend (1 min) — {extensionsRemaining} left
               </button>
