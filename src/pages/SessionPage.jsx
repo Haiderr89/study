@@ -134,10 +134,10 @@ export default function SessionPage() {
       <div className="session-content">
         {/* Controls Sidebar (Left) */}
         <div className="controls-sidebar">
-          <div className="examix-logo">
+          {/* <div className="examix-logo">
             <div className="logo-circle"></div>
             <span>EXAMIX</span>
-          </div>
+          </div> */}
 
           <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', width: '100%' }} />
 
