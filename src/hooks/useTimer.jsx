@@ -45,6 +45,13 @@ export default function useTimer({ initialTime, onExpire }) {
     if (timerRef.current) clearInterval(timerRef.current);
   }, [updateTime]);
 
+  const onExpireRef = useRef(onExpire);
+
+  // Update the ref on every render so the interval always has the latest logic
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  });
+
   useEffect(() => {
     const tick = () => {
       if (isRunningRef.current) {
@@ -56,7 +63,7 @@ export default function useTimer({ initialTime, onExpire }) {
           isRunningRef.current = false;
           setIsRunning(false);
           clearInterval(timerRef.current);
-          if (onExpire) onExpire();
+          if (onExpireRef.current) onExpireRef.current();
         }
       }
     };
@@ -68,7 +75,7 @@ export default function useTimer({ initialTime, onExpire }) {
     }
 
     return () => clearInterval(timerRef.current);
-  }, [isRunning, onExpire, updateTime]);
+  }, [isRunning, updateTime]); // Removed onExpire dependency
 
   // Format time as MM:SS
   const formattedTime = `${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}`;

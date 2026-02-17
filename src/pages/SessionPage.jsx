@@ -23,9 +23,11 @@ export default function SessionPage() {
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [slidesCompletedInBlock, setSlidesCompletedInBlock] = useState(0);
 
+  const handleExpire = useCallback(() => setShowOverlay(true), []);
+
   const { timeLeft, formattedTime, isRunning, start, pause, reset, progress } = useTimer({
     initialTime: 0,
-    onExpire: () => setShowOverlay(true)
+    onExpire: handleExpire
   });
 
   // Session Timer
@@ -62,14 +64,14 @@ export default function SessionPage() {
     reset(0);
   }, [currentSlideIndex, reset]);
 
-  const handleDifficultySelect = (seconds) => {
+  const handleDifficultySelect = useCallback((seconds) => {
     setDifficultySelected(seconds);
     dispatch({ type: 'UPDATE_SLIDE_DIFFICULTY', payload: { slideId: currentSlide.id, difficulty: seconds } });
     reset(seconds);
     start();
-  };
+  }, [currentSlide?.id, dispatch, reset, start]);
 
-  const handleNextSlide = () => {
+  const handleNextSlide = useCallback(() => {
     pause();
     setShowOverlay(false);
 
@@ -81,15 +83,15 @@ export default function SessionPage() {
     } else {
       moveToNext();
     }
-  };
+  }, [pause, slidesCompletedInBlock, moveToNext]); // Note: moveToNext needs stabilization too if we want to be strict, but it depends on many things. I'll stabilize it.
 
-  const moveToNext = () => {
+  const moveToNext = useCallback(() => {
     if (currentSlideIndex < slides.length - 1) {
       dispatch({ type: 'NEXT_SLIDE' });
     } else {
       navigate('/summary');
     }
-  };
+  }, [currentSlideIndex, slides.length, dispatch, navigate]);
 
   const handleFinishReview = () => {
     setIsReviewMode(false);
@@ -103,16 +105,16 @@ export default function SessionPage() {
     return slides.slice(Math.max(0, currentSlideIndex - 4), currentSlideIndex + 1);
   }, [isReviewMode, currentSlideIndex, slides]);
 
-  const handleExtend = () => {
+  const handleExtend = useCallback(() => {
     dispatch({ type: 'USE_EXTENSION' });
     reset(timeLeft + 60);
     start();
     setShowOverlay(false);
-  };
+  }, [dispatch, reset, timeLeft, start]);
 
-  const handleMarkAndMove = () => {
+  const handleMarkAndMove = useCallback(() => {
     handleNextSlide();
-  };
+  }, [handleNextSlide]);
 
   if (!currentSlide) {
     return (
