@@ -6,53 +6,69 @@ export default function useTimer({ initialTime, onExpire }) {
   const timerRef = useRef(null);
   const startTimestampRef = useRef(null);
   const baseTimeRef = useRef(initialTime);
+  const timeLeftRef = useRef(initialTime);
+  const isRunningRef = useRef(false);
+
+  const updateTime = useCallback((newTime) => {
+    const clampedTime = Math.max(0, newTime);
+    timeLeftRef.current = clampedTime;
+    setTimeLeft(clampedTime);
+    return clampedTime;
+  }, []);
 
   const start = useCallback(() => {
-    if (!isRunning) {
-      startTimestampRef.current = Date.now();
-      baseTimeRef.current = timeLeft;
+    if (!isRunningRef.current) {
+      isRunningRef.current = true;
       setIsRunning(true);
+      startTimestampRef.current = Date.now();
+      baseTimeRef.current = timeLeftRef.current;
     }
-  }, [isRunning, timeLeft]);
+  }, []);
 
   const pause = useCallback(() => {
-    if (isRunning) {
+    if (isRunningRef.current) {
+      isRunningRef.current = false;
       setIsRunning(false);
       const now = Date.now();
       const elapsed = Math.floor((now - startTimestampRef.current) / 1000);
-      setTimeLeft(Math.max(0, baseTimeRef.current - elapsed));
+      updateTime(baseTimeRef.current - elapsed);
       startTimestampRef.current = null;
     }
-  }, [isRunning]);
+  }, [updateTime]);
 
   const reset = useCallback((newTime) => {
+    isRunningRef.current = false;
     setIsRunning(false);
-    setTimeLeft(newTime);
+    updateTime(newTime);
     baseTimeRef.current = newTime;
     startTimestampRef.current = null;
-  }, []);
+    if (timerRef.current) clearInterval(timerRef.current);
+  }, [updateTime]);
 
   useEffect(() => {
-    if (isRunning) {
-      timerRef.current = setInterval(() => {
+    const tick = () => {
+      if (isRunningRef.current) {
         const now = Date.now();
         const elapsed = Math.floor((now - startTimestampRef.current) / 1000);
-        const nextTimeLeft = Math.max(0, baseTimeRef.current - elapsed);
-
-        setTimeLeft(nextTimeLeft);
+        const nextTimeLeft = updateTime(baseTimeRef.current - elapsed);
 
         if (nextTimeLeft <= 0) {
-          clearInterval(timerRef.current);
+          isRunningRef.current = false;
           setIsRunning(false);
+          clearInterval(timerRef.current);
           if (onExpire) onExpire();
         }
-      }, 500);
+      }
+    };
+
+    if (isRunning) {
+      timerRef.current = setInterval(tick, 500);
     } else {
       clearInterval(timerRef.current);
     }
 
     return () => clearInterval(timerRef.current);
-  }, [isRunning, onExpire]);
+  }, [isRunning, onExpire, updateTime]);
 
   // Format time as MM:SS
   const formattedTime = `${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}`;
