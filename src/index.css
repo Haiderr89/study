@@ -45,18 +45,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 0;
 }
 
 /* Main app container */
 .examix-container {
-  width: 95vw;
-  max-width: 1400px;
-  height: 90vh;
-  max-height: 900px;
+  width: 100vw;
+  height: 100vh;
   background: var(--bg-app);
-  border-radius: 2.5rem;
-  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.4);
+  border-radius: 0;
+  box-shadow: none;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -100,7 +98,7 @@ body {
   /* position: relative; */
   position: fixed;
   z-index: 10;
-  width: 95vw;
+  width: 100vw;
 }
 
 .examix-logo {
@@ -784,20 +782,19 @@ input::-webkit-inner-spin-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 0;
 }
 
 .review-container {
-  width: 100%;
-  max-width: 1200px;
-  height: 85vh;
+  width: 100vw;
+  height: 100vh;
   background: var(--bg-app);
-  border-radius: 2.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0;
+  border: none;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
 }
 
 .review-header {
@@ -861,7 +858,7 @@ input::-webkit-inner-spin-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 0;
 }
 
 .review-progress {

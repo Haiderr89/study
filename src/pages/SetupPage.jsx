@@ -103,14 +103,7 @@ export default function SetupPage() {
             </div>
           </>
         ) : (
-          <div style={{
-            width: '100%',
-            maxWidth: '500px',
-            background: 'rgba(255,255,255,0.05)',
-            padding: '2rem',
-            borderRadius: '2rem',
-            border: '1px solid rgba(255,255,255,0.1)'
-          }}>
+          <div style={{ width: '100%', maxWidth: '500px' }}>
             <ConfigForm onStart={handleStartSession} fileName={file.name} />
           </div>
         )}

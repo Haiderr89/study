@@ -39,7 +39,7 @@ export default function SummaryPage() {
     };
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center p-6 animate-fade-in relative overflow-hidden">
+        <div className="w-screen h-screen flex flex-col items-center justify-center p-6 animate-fade-in relative overflow-hidden bg-[var(--bg-app)]">
             {/* Background Ambient Glow */}
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[128px] pointer-events-none" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[128px] pointer-events-none" />
