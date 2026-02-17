@@ -47,13 +47,13 @@ export default function SessionPage() {
   }, [state.isConfigured, slides.length, navigate]);
 
   useEffect(() => {
-    if (isActive && !isReviewMode) {
+    if (isActive) {
       startSessionTimer();
     } else {
       pauseSessionTimer();
     }
     return () => pauseSessionTimer();
-  }, [isActive, isReviewMode, startSessionTimer, pauseSessionTimer]);
+  }, [isActive, startSessionTimer, pauseSessionTimer]);
 
   useEffect(() => {
     setShowOverlay(false);
@@ -151,7 +151,7 @@ export default function SessionPage() {
 
           <div className="timer-card-session" style={{ marginBottom: '1rem', background: 'rgba(255,255,255,0.05)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>
-              <Clock size={16} className="text-purple-300"/>
+              <Clock size={16} className="text-purple-300" />
               <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>TOTAL TIME</span>
             </div>
             <div style={{ fontSize: '2.5rem', fontVariantNumeric: 'tabular-nums', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1 }}>
