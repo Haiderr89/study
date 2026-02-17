@@ -71,6 +71,14 @@ export default function SessionPage() {
     start();
   }, [currentSlide?.id, dispatch, reset, start]);
 
+  const moveToNext = useCallback(() => {
+    if (currentSlideIndex < slides.length - 1) {
+      dispatch({ type: 'NEXT_SLIDE' });
+    } else {
+      navigate('/summary');
+    }
+  }, [currentSlideIndex, slides.length, dispatch, navigate]);
+
   const handleNextSlide = useCallback(() => {
     pause();
     setShowOverlay(false);
@@ -83,15 +91,8 @@ export default function SessionPage() {
     } else {
       moveToNext();
     }
-  }, [pause, slidesCompletedInBlock, moveToNext]); // Note: moveToNext needs stabilization too if we want to be strict, but it depends on many things. I'll stabilize it.
+  }, [pause, slidesCompletedInBlock, moveToNext]);
 
-  const moveToNext = useCallback(() => {
-    if (currentSlideIndex < slides.length - 1) {
-      dispatch({ type: 'NEXT_SLIDE' });
-    } else {
-      navigate('/summary');
-    }
-  }, [currentSlideIndex, slides.length, dispatch, navigate]);
 
   const handleFinishReview = () => {
     setIsReviewMode(false);
