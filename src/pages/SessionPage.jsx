@@ -5,8 +5,9 @@ import useTimer from '../hooks/useTimer';
 import SlideViewer from '../components/SlideViewer';
 import Overlay from '../components/Overlay';
 import ReviewOverlay from '../components/ReviewOverlay';
+import AISidebar from '../components/AISidebar';
 import useBoredomDetection from '../hooks/useBoredomDetection';
-import { Clock, AlertCircle, CheckCircle, Target, Zap, ArrowRight } from 'lucide-react';
+import { Clock, AlertCircle, CheckCircle, Target, Zap, ArrowRight, MessageSquareCode } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
 export default function SessionPage() {
@@ -22,6 +23,10 @@ export default function SessionPage() {
   // Review Mode State
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [slidesCompletedInBlock, setSlidesCompletedInBlock] = useState(0);
+
+  // AI Assistant State
+  const [extractedText, setExtractedText] = useState('');
+  const [isAISidebarOpen, setIsAISidebarOpen] = useState(false);
 
   const handleExpire = useCallback(() => setShowOverlay(true), []);
 
@@ -231,6 +236,12 @@ export default function SessionPage() {
               Next Slide <ArrowRight size={20} />
             </button>
             <button
+              onClick={() => setIsAISidebarOpen(true)}
+              className="start-study-btn !bg-indigo-600 !text-white"
+            >
+              Ask AI <MessageSquareCode size={20} />
+            </button>
+            <button
               onClick={() => navigate('/')}
               style={{ background: 'transparent', color: 'rgba(255,255,255,0.3)', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
             >
@@ -244,9 +255,20 @@ export default function SessionPage() {
             <SlideViewer
               fileUrl={currentSlide.fileUrl}
               pageNumber={currentSlide.pageNumber}
+              onTextExtracted={setExtractedText}
             />
           </div>
         </div>
+
+        <AnimatePresence>
+          {isAISidebarOpen && (
+            <AISidebar
+              extractedText={extractedText}
+              isOpen={isAISidebarOpen}
+              onClose={() => setIsAISidebarOpen(false)}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       <AnimatePresence>

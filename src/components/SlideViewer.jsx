@@ -1,7 +1,7 @@
 import { Page, Document } from 'react-pdf';
 import { useEffect, useState } from 'react';
 
-export default function SlideViewer({ fileUrl, pageNumber }) {
+export default function SlideViewer({ fileUrl, pageNumber, onTextExtracted }) {
   const [containerWidth, setContainerWidth] = useState(0);
   const [scale, setScale] = useState(1.0);
 
@@ -36,34 +36,20 @@ export default function SlideViewer({ fileUrl, pageNumber }) {
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.1, 2.5));
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.1, 0.5));
 
+  const handlePageLoadSuccess = async (page) => {
+    try {
+      const textContent = await page.getTextContent();
+      const extractedText = textContent.items.map(item => item.str).join(' ');
+      if (onTextExtracted) {
+        onTextExtracted(extractedText);
+      }
+    } catch (error) {
+      console.error("Error extracting text:", error);
+    }
+  };
+
   return (
     <div className="relative w-full h-full flex flex-col">
-      {/* Zoom Controls */}
-      {/* <div className="absolute top-4 right-4 z-50 flex gap-2 bg-black/40 backdrop-blur-md p-2 rounded-xl border border-white/10">
-        <button
-          onClick={handleZoomOut}
-          className="p-2 hover:bg-white/10 rounded-lg text-white transition-colors"
-          title="Zoom Out"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
-        <div className="flex items-center px-2 text-sm font-mono text-white/80">
-          {Math.round(scale * 100)}%
-        </div>
-        <button
-          onClick={handleZoomIn}
-          className="p-2 hover:bg-white/10 rounded-lg text-white transition-colors"
-          title="Zoom In"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
-      </div> */}
-
       <div id="pdf-container" className="w-full h-full flex items-center justify-center overflow-auto">
         <Document
           file={fileUrl}
@@ -80,9 +66,7 @@ export default function SlideViewer({ fileUrl, pageNumber }) {
         >
           <Page
             pageNumber={pageNumber}
-            // Render scaling: use height to determine resolution if we want full height, or width. 
-            // To fix blur, we normally don't use CSS scaling. We render AT the size we want.
-            // Let's render at 1.5x resolution for sharpness or just match height.
+            onLoadSuccess={handlePageLoadSuccess}
             height={window.innerHeight * 0.7}
             scale={scale}
             renderTextLayer={false}
